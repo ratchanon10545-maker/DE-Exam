@@ -9,10 +9,12 @@ function parse(raw) { const blocks = raw.replace(/^\uFEFF/, "").replace(/\r/g, "
 function normalizeFilePath(value) {
   const candidate = String(value || "").trim().replace(/\\/g, "/");
   if (!candidate) return "";
-  if (/^https?:\/\//i.test(candidate)) return new URL(candidate).pathname;
-  if (candidate.startsWith("./")) return "/" + candidate.slice(2).replace(/^\//, "");
-  if (candidate.startsWith("/")) return candidate;
-  return "/" + candidate.replace(/^\//, "");
+  try {
+    if (/^https?:\/\//i.test(candidate)) return new URL(candidate).href;
+    return new URL(candidate, window.location.href).href;
+  } catch (err) {
+    return candidate;
+  }
 }
 
 function normalizeFileList(files) {
@@ -20,7 +22,8 @@ function normalizeFileList(files) {
 }
 
 function getFileName(path) {
-  return (String(path || "").split(/[?#]/)[0].split("/").filter(Boolean).at(-1) || "questions");
+  const url = new URL(path || "./", window.location.href);
+  return (url.pathname.split("/").filter(Boolean).at(-1) || "questions");
 }
 
 function updateFileSelector() {
@@ -44,36 +47,32 @@ async function discoverQuestionFiles() {
   const explicitFiles = normalizeFileList(FILE);
   const discovered = [];
   try {
-    const directoryRes = await fetch("./questions/", { cache: "no-store" });
+    const directoryRes = await fetch(new URL("./questions/", window.location.href), { cache: "no-store" });
     if (directoryRes.ok) {
       const html = await directoryRes.text();
       const matches = [...html.matchAll(/href=["']([^"']+)["']/gi)];
       for (const match of matches) {
         const href = match[1];
-        const absolute = new URL(href, location.href).href;
-        const relative = absolute.startsWith(location.origin)
-          ? absolute.slice(location.origin.length)
-          : href;
-
-        if (/^\//.test(relative) && relative.includes("/questions/")) {
-          discovered.push(relative);
+        const finalUrl = new URL(href, window.location.href).href;
+        if (finalUrl.includes("/questions/")) {
+          discovered.push(finalUrl);
         }
       }
     }
   } catch (err) {
-    // ถ้าโฟลเดอร์ไม่สามารถอ่านได้ ให้ใช้ไฟล์ที่กำหนดไว้เท่านั้น
+    // GitHub Pages อาจไม่เปิด directory listing ได้ จึง fallback ไปใช้ไฟล์ที่กำหนดไว้
   }
 
   const validFiles = discovered.filter(path => /\.(txt|md|json|csv)$/i.test(path));
   fileList = normalizeFileList([...explicitFiles, ...validFiles]);
-  if (!fileList.length) fileList = explicitFiles.length ? explicitFiles : [FILE];
+  if (!fileList.length) fileList = explicitFiles.length ? explicitFiles : [normalizeFilePath(FILE)];
   if (currentFileIndex >= fileList.length) currentFileIndex = 0;
   updateFileSelector();
 }
 
 function cycleFile(step) {
   if (fileList.length <= 1) return;
-  // currentFileIndex = (currentFileIndex + step + fileList.length) % fileList.length;
+  currentFileIndex = (currentFileIndex + step + fileList.length) % fileList.length;
   updateFileSelector();
   load();
 }

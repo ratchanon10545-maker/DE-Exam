@@ -1,5 +1,9 @@
 const $ = s => document.querySelector(s);
-const FILE = "./questions/text.txt";
+const SITE_BASE = (function () {
+  const path = location.pathname.replace(/index\.html?$/, "").replace(/\/$/, "");
+  return `${location.origin}${path || ""}`;
+})();
+const FILE = new URL("./questions/text.txt", `${SITE_BASE}/`).href;
 let qs = [], idx = 0, answers = [], done = [];
 let fileList = [FILE].filter(Boolean);
 let currentFileIndex = 0;

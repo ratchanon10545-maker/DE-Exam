@@ -3,9 +3,13 @@ const SITE_BASE = (function () {
   const path = location.pathname.replace(/index\.html?$/, "").replace(/\/$/, "");
   return `${location.origin}${path || ""}`;
 })();
-const FILE = new URL("./questions/text.txt", `${SITE_BASE}/`).href;
+const DEFAULT_QUESTION_FILES = [
+  new URL("./questions/text.txt", `${SITE_BASE}/`).href,
+  new URL("./questions/text2.txt", `${SITE_BASE}/`).href,
+];
+const FILE = DEFAULT_QUESTION_FILES[0];
 let qs = [], idx = 0, answers = [], done = [];
-let fileList = [FILE].filter(Boolean);
+let fileList = DEFAULT_QUESTION_FILES.filter(Boolean);
 let currentFileIndex = 0;
 
 function parse(raw) { const blocks = raw.replace(/^\uFEFF/, "").replace(/\r/g, "").trim().split(/\n\s*\n+/).filter(Boolean); if (!blocks.length) throw Error("ไฟล์ว่างเปล่า"); return blocks.map((block, i) => { let q = "", a = "", e = "", section = "", opts = []; for (const rawline of block.split("\n")) { let l = rawline.trim(), m; if (!l || l.startsWith("#")) continue; if ((m = l.match(/^Q(?:UESTION)?\s*:\s*(.*)$/i))) { q = m[1]; section = "q" } else if ((m = l.match(/^([A-J])\s*:\s*(.*)$/i))) { opts.push({ key: m[1].toUpperCase(), text: m[2] }); section = "o" } else if ((m = l.match(/^(?:ANSWER|เฉลย|คำตอบ)\s*:\s*(.*)$/i))) { a = m[1].trim().toUpperCase(); section = "a" } else if ((m = l.match(/^(?:EXPLANATION|อธิบาย|คำอธิบาย)\s*:\s*(.*)$/i))) { e = m[1]; section = "e" } else if (section === "q") q += "\n" + l; else if (section === "o" && opts.length) opts.at(-1).text += "\n" + l; else if (section === "e") e += "\n" + l } if (!q || opts.length < 2 || !opts.some(o => o.key === a)) throw Error(`ข้อ ${i + 1} มีข้อมูลไม่ครบหรือเฉลยไม่ตรงตัวเลือก`); return { q, opts, a, e } }) }
@@ -48,24 +52,28 @@ function updateFileSelector() {
 }
 
 async function discoverQuestionFiles() {
-  const explicitFiles = normalizeFileList(FILE);
+  const explicitFiles = normalizeFileList(DEFAULT_QUESTION_FILES);
   const discovered = [];
-  try {
-    const directoryRes = await fetch(new URL("./questions/", window.location.href), { cache: "no-store" });
-    console.log("Directory listing response:", directoryRes);
-    if (directoryRes.ok) {
-      const html = await directoryRes.text();
-      const matches = [...html.matchAll(/href=["']([^"']+)["']/gi)];
-      for (const match of matches) {
-        const href = match[1];
-        const finalUrl = new URL(href, window.location.href).href;
-        if (finalUrl.includes("/questions/")) {
-          discovered.push(finalUrl);
+  const isGitHubPages = /github\.io$/i.test(window.location.hostname) || /github\.io\//i.test(window.location.href);
+
+  if (!isGitHubPages) {
+    try {
+      const directoryUrl = new URL("./questions/", window.location.href);
+      const directoryRes = await fetch(directoryUrl, { cache: "no-store" });
+      if (directoryRes.ok) {
+        const html = await directoryRes.text();
+        const matches = [...html.matchAll(/href=["']([^"']+)["']/gi)];
+        for (const match of matches) {
+          const href = match[1];
+          const finalUrl = new URL(href, window.location.href).href;
+          if (finalUrl.includes("/questions/")) {
+            discovered.push(finalUrl);
+          }
         }
       }
+    } catch (err) {
+      // Directory listing is unsupported on many static hosts, so we keep the explicit fallback list.
     }
-  } catch (err) {
-    // GitHub Pages อาจไม่เปิด directory listing ได้ จึง fallback ไปใช้ไฟล์ที่กำหนดไว้
   }
 
   const validFiles = discovered.filter(path => /\.(txt|md|json|csv)$/i.test(path));

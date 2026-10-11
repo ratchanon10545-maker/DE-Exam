@@ -1,0 +1,23 @@
+Q: HTML ย่อมาจากอะไร?
+A: HyperText Markup Language
+B: HighText Machine Language
+C: HyperTool Multi Language
+D: Home Tool Markup Language
+ANSWER: A
+EXPLANATION: HTML เป็นภาษามาร์กอัปที่ใช้กำหนดโครงสร้างของหน้าเว็บ
+
+Q: CSS ใช้สำหรับอะไรเป็นหลัก?
+A: จัดการฐานข้อมูล
+B: ตกแต่งรูปแบบและหน้าตาของเว็บไซต์
+C: เขียนระบบปฏิบัติการ
+D: เชื่อมต่อเครื่องพิมพ์
+ANSWER: B
+EXPLANATION: CSS ใช้กำหนดสี ระยะห่าง รูปแบบตัวอักษร และการจัดวางองค์ประกอบ
+
+Q: JavaScript ช่วยให้เว็บไซต์ทำอะไรได้?
+A: เพิ่มการโต้ตอบและพฤติกรรมแบบไดนามิก
+B: ใช้แทนไฟล์ภาพทั้งหมด
+C: ทำให้ไม่ต้องใช้ HTML
+D: เปลี่ยนชื่อโดเมนอัตโนมัติ
+ANSWER: A
+EXPLANATION: JavaScript ใช้ควบคุมการทำงาน เช่น เลือกคำตอบ เปลี่ยนข้อ และคำนวณคะแนน

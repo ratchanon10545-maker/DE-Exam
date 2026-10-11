@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="th">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ระบบทำข้อสอบ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <header>
+    <div class="logo">Q</div>
+    <div><small>ONLINE
+        EXAM</small>
+      <h1>ระบบทำข้อสอบ</h1>
+    </div>
+  </header>
+  <main>
+    <section class="hero"><small>TEST YOUR
+        KNOWLEDGE</small>
+      <h2>เรียนรู้จากทุกคำตอบ</h2>
+      <p>เลือกคำตอบแล้วระบบจะแสดงเฉลยทันที</p>
+    </section>
+    <section id="setup" class="panel">
+      <h2>เตรียมข้อสอบ</h2>
+      <p id="status">กำลังอ่านไฟล์ข้อสอบ…</p>
+      <div id="filePickerWrap" class="file-picker" hidden>
+        <label for="fileSelect">เลือกไฟล์ข้อสอบ</label>
+        <select id="fileSelect"></select>
+      </div>
+      <!-- <div class="actions">
+        <button id="prevFile" class="secondary">ไฟล์ก่อนหน้า</button>
+        <button id="nextFile" class="secondary">ไฟล์ถัดไป</button>
+      </div> -->
+      <button id="start" disabled>เริ่มทำข้อสอบ</button> 
+      <button id="reload" class="secondary">อ่านไฟล์อีกครั้ง</button>
+      <p class="hint">ระบบจะอ่านไฟล์ในโฟลเดอร์
+        <code>questions</code> และสลับระหว่างไฟล์ที่มีได้อัตโนมัติ
+      </p>
+    </section>
+    <section id="quiz" class="panel" hidden>
+      <div class="meta"><span id="counter"></span><span id="answered"></span></div>
+      <div class="track">
+        <div id="progress"></div>
+      </div>
+      <div class="qrow"><b id="number"></b>
+        <div class="qbody">
+          <h2 id="question"></h2>
+          <div id="options"></div>
+          <div id="feedback" hidden></div>
+        </div>
+      </div>
+      <div class="actions">
+        <div>
+            <button id="backToSetup" class="secondary">กลับหน้าแรก</button>
+        </div>
+        <div>
+          <button id="prev" class="secondary">← ข้อก่อนหน้า</button>
+        </div>
+        <div>
+          <button id="next">ข้อถัดไป →</button>
+          <button id="submit" hidden>ดูผลคะแนน</button>
+        </div>
+      </div>
+    </section>
+    <section id="result" class="panel" hidden>
+      <h2>สรุปผลการทำข้อสอบ</h2>
+      <div class="score"><strong id="score"></strong>
+        <p id="percent"></p>
+        <div class="track">
+          <div id="scorebar"></div>
+        </div>
+      </div>
+      <div class="actions"><button id="retry">ทำข้อสอบอีกครั้ง</button><button id="back"
+          class="secondary">กลับหน้าเริ่มต้น</button></div>
+      <div id="review"></div>
+    </section>
+    <footer>HTML · CSS · JavaScript</footer>
+  </main>
+  <script src="script.js"></script>
+</body>
+
+</html>

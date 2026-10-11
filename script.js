@@ -48,6 +48,7 @@ async function discoverQuestionFiles() {
   const discovered = [];
   try {
     const directoryRes = await fetch(new URL("./questions/", window.location.href), { cache: "no-store" });
+    console.log("Directory listing response:", directoryRes);
     if (directoryRes.ok) {
       const html = await directoryRes.text();
       const matches = [...html.matchAll(/href=["']([^"']+)["']/gi)];

@@ -207,6 +207,7 @@ button:disabled {
 
 .option {
     display: flex;
+    font-size: 14px;
     gap: 12px;
     align-items: flex-start;
     width: 100%;
@@ -375,12 +376,12 @@ footer {
         display: flex;
         /* justify-content: flex-end */
     }
+
     .actions>div>button {
         flex: 1
     }
 
-    .next{
+    .next {
         width: 100%;
     }
 }
-

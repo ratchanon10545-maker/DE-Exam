@@ -4,7 +4,7 @@ const SITE_BASE = (function () {
   return `${location.origin}${path || ""}`;
 })();
 const DEFAULT_QUESTION_FILES = [
-  new URL("./questions/text.txt", `${SITE_BASE}/`).href,
+  new URL("./questions/พรบข้าราชการพลเรือน.txt", `${SITE_BASE}/`).href,
   new URL("./questions/text2.txt", `${SITE_BASE}/`).href,
 ];
 const FILE = DEFAULT_QUESTION_FILES[0];
@@ -30,8 +30,18 @@ function normalizeFileList(files) {
 }
 
 function getFileName(path) {
-  const url = new URL(path || "./", window.location.href);
-  return (url.pathname.split("/").filter(Boolean).at(-1) || "questions");
+  try {
+    const url = new URL(path || "./", window.location.href);
+    const rawName = url.pathname.split("/").filter(Boolean).at(-1) || "questions";
+    return decodeURIComponent(rawName);
+  } catch (err) {
+    const rawName = String(path || "").split("/").filter(Boolean).at(-1) || "questions";
+    try {
+      return decodeURIComponent(rawName);
+    } catch {
+      return rawName;
+    }
+  }
 }
 
 function updateFileSelector() {
@@ -65,7 +75,7 @@ async function discoverQuestionFiles() {
         const matches = [...html.matchAll(/href=["']([^"']+)["']/gi)];
         for (const match of matches) {
           const href = match[1];
-          const finalUrl = new URL(href, window.location.href).href;
+          const finalUrl = new URL(href, directoryUrl).href;
           if (finalUrl.includes("/questions/")) {
             discovered.push(finalUrl);
           }
@@ -94,7 +104,7 @@ async function load() {
   await discoverQuestionFiles();
   const activeFile = fileList[currentFileIndex] || FILE;
   $("#start").disabled = true;
-  $("#status").textContent = `กำลังอ่าน ${activeFile}…`;
+  $("#status").textContent = `กำลังอ่าน ${getFileName(activeFile)}…`;
   updateFileSelector();
   try {
     let r = await fetch(activeFile, { cache: "no-store" });
@@ -103,15 +113,15 @@ async function load() {
     $("#status").textContent = `อ่านสำเร็จ พบข้อสอบ ${qs.length} ข้อ (ไฟล์: ${getFileName(activeFile)})`;
     $("#start").disabled = false;
   } catch (err) {
-    $("#status").textContent = `อ่านข้อสอบไม่ได้ (${err.message}) กรุณาตรวจตำแหน่ง ${activeFile} และเปิดเว็บไซต์ผ่านเว็บเซิร์ฟเวอร์ ไม่ใช่ดับเบิลคลิก index.html`;
+    $("#status").textContent = `อ่านข้อสอบไม่ได้ (${err.message}) กรุณาตรวจตำแหน่ง ${decodeURI(activeFile)} และเปิดเว็บไซต์ผ่านเว็บเซิร์ฟเวอร์ ไม่ใช่ดับเบิลคลิก index.html`;
   }
 }
 function start() { answers = Array(qs.length).fill(null); done = Array(qs.length).fill(false); idx = 0; $("#setup").hidden = true; $("#result").hidden = true; $("#quiz").hidden = false; show() }
 function show() { let q = qs[idx]; $("#counter").textContent = `ข้อ ${idx + 1} จาก ${qs.length}`; $("#answered").textContent = `ตอบแล้ว ${done.filter(Boolean).length} ข้อ`; $("#number").textContent = String(idx + 1).padStart(2, "0"); $("#question").textContent = q.q; $("#progress").style.width = `${(idx + 1) / qs.length * 100}%`; let list = $("#options"); list.replaceChildren(); q.opts.forEach(o => { let b = document.createElement("button"); b.className = "option"; b.type = "button"; if (done[idx]) { b.disabled = true; if (o.key === q.a) b.classList.add("good"); if (o.key === answers[idx] && o.key !== q.a) b.classList.add("bad") } else if (answers[idx] === o.key) b.classList.add("selected"); let k = document.createElement("span"); k.className = "key"; k.textContent = o.key; let t = document.createElement("span"); t.textContent = o.text; b.append(k, t); b.onclick = () => choose(o.key); list.append(b) }); let f = $("#feedback"); f.hidden = !done[idx]; f.className = ""; if (done[idx]) { let ok = answers[idx] === q.a, correct = q.opts.find(o => o.key === q.a); f.className = ok ? "good" : "bad"; f.textContent = (ok ? "✓ ถูกต้อง!" : "✕ ยังไม่ถูกต้อง") + `\nเฉลย: ${correct.key}. ${correct.text}` + (q.e ? `\nคำอธิบาย: ${q.e}` : "") } $("#prev").disabled = idx === 0; $("#next").hidden = idx === qs.length - 1; $("#submit").hidden = idx !== qs.length - 1 }
 function choose(key) { if (done[idx]) return; answers[idx] = key; done[idx] = true; show() }
 function submit() { let score = qs.filter((q, i) => answers[i] === q.a).length, p = Math.round(score / qs.length * 100); $("#quiz").hidden = true; $("#result").hidden = false; $("#score").textContent = `${score} / ${qs.length}`; $("#percent").textContent = `คะแนน ${p}%`; $("#scorebar").style.width = p + "%"; let rev = $("#review"); rev.replaceChildren(); qs.forEach((q, i) => { let d = document.createElement("article"); d.className = "review-item " + (answers[i] === q.a ? "good" : ""); let h = document.createElement("h3"); h.textContent = `${i + 1}. ${q.q}`; let p = document.createElement("p"); p.textContent = `คำตอบของคุณ: ${q.opts.find(o => o.key === answers[i])?.text || "ไม่ได้ตอบ"}`; let c = document.createElement("p"); c.textContent = `เฉลย: ${q.opts.find(o => o.key === q.a).key}. ${q.opts.find(o => o.key === q.a).text}`; d.append(h, p, c); if (q.e) { let e = document.createElement("p"); e.textContent = "คำอธิบาย: " + q.e; d.append(e) } rev.append(d) }) }
-$("#start").onclick = start; 
-$("#reload").onclick = () => cycleFile(1); 
+$("#start").onclick = start;
+$("#reload").onclick = () => cycleFile(1);
 // $("#prevFile").onclick = () => cycleFile(-1); 
 // $("#nextFile").onclick = () => cycleFile(1); 
 $("#fileSelect").onchange = (event) => { const index = fileList.indexOf(event.target.value); if (index >= 0) { currentFileIndex = index; updateFileSelector(); load(); } }; $("#prev").onclick = () => { if (idx > 0) { idx--; show() } }; $("#next").onclick = () => { if (idx < qs.length - 1) { idx++; show() } }; $("#submit").onclick = submit; $("#retry").onclick = start; $("#backToSetup").onclick = () => { $("#quiz").hidden = true; $("#result").hidden = true; $("#setup").hidden = false }; $("#back").onclick = () => { $("#result").hidden = true; $("#setup").hidden = false }; load();
